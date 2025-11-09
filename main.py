@@ -3,13 +3,12 @@ from loguru import logger
 from src.agent import AgentExecutor
 
 
-
 st.title("✨ Welcome to Chatbot Playground")
 
 # Form untuk konfigurasi awal
 with st.form("config_form"):
-	model_name = st.text_input("Nama Model", value=st.session_state.get("model_name", ""))
-	base_url = st.text_input("Base URL", value=st.session_state.get("base_url", ""))
+	model_name = st.text_input("Nama Model", value=st.session_state.get("model_name", "qwen3-8b"))
+	base_url = st.text_input("Base URL", value=st.session_state.get("base_url", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"))
 	api_key = st.text_input("API Key", type="password", value=st.session_state.get("api_key", ""))
 	submitted = st.form_submit_button("Simpan Konfigurasi")
 	if submitted:
@@ -87,7 +86,21 @@ for msg in st.session_state["messages"]:
 # Input box untuk user
 user_input = st.text_input("Ketik pesan Anda di sini:", "", key="input")
 
-if st.button("Kirim") and user_input:
+# File uploader (harus di luar kondisi button)
+uploaded_file = st.file_uploader("Upload File", key="file_uploader")
+
+# Handle upload file
+if uploaded_file is not None:
+	st.success(f"File '{uploaded_file.name}' berhasil diupload!")
+	# Jika ingin menyimpan file:
+	with open(f"src/uploaded_files/{uploaded_file.name}", "wb") as f:
+		f.write(uploaded_file.getbuffer())
+		logger.info(f"File {uploaded_file.name} disimpan di src/uploaded/")
+
+# Button kirim
+send_button = st.button("Kirim")
+
+if send_button and user_input:
 	# Simpan pesan user
 	st.session_state["messages"].append({"role": "user", "content": user_input})
 	# Bot membalas
